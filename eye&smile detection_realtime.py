@@ -1,0 +1,43 @@
+import cv2
+
+face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
+smile_cascade = cv2.CascadeClassifier('haarcascade_smile.xml')
+eye_data = cv2.CascadeClassifier('haarcascade_eye.xml')
+
+webcam = cv2.VideoCapture('video.mp4')
+
+def detect(gray, frame):
+    faces = face_cascade.detectMultiScale(gray, 1.3, 5)
+    print(faces)
+    for (x, y, w, h) in faces:
+        #cv2.rectangle(frame, (x, y), ((x + w), (y + h)), (255, 0, 0), 2)
+        roi_gray = gray[y:y + h, x:x + w]
+        roi_color = frame[y:y + h, x:x + w]
+        smiles = smile_cascade.detectMultiScale(roi_gray, 1.9, 20)
+        print(smiles)
+        eye_coordinates = eye_data.detectMultiScale(roi_gray, 1.5, 10)
+        print(eye_coordinates)
+
+        for (sx, sy, sw, sh) in smiles:
+            cv2.rectangle(roi_color, (sx, sy), ((sx + sw), (sy + sh)), (0, 0, 255), 2)
+        for (x__, y__, w__, h__) in eye_coordinates:
+                cv2.rectangle(roi_color, (x__, y__), (x__ + w__, y__ + h__), (0, 255, 0), 2)
+    return frame
+
+while True:
+    read_success, frame = webcam.read()
+
+    if read_success:
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    else:
+        print('frame read uncessfull')
+        break
+
+    output = detect(gray, frame)
+    cv2.imshow('smile', frame)
+    key = cv2.waitKey(1)
+
+    if key == 81 or key == 113:
+        break
+webcam.release()
+print('code complete')
